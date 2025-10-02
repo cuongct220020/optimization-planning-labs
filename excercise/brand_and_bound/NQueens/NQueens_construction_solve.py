@@ -27,6 +27,30 @@ Input:
 10
 
 Output:
-10
 9 2 4 1 7 10 6 3 5 8
 """
+
+def check(r, x, c_idx):
+    for i in range(c_idx):
+        if x[i] == r or abs(x[i] - r) == abs(i - c_idx):
+            return False
+    return True
+
+def backtrack(n, x, c_idx):
+    if c_idx == n:
+        print(" ".join(str(v+1) for v in x))  # xuất nghiệm
+        exit(0)
+    for r in range(n):
+        if check(r, x, c_idx):
+            x[c_idx] = r
+            backtrack(n, x, c_idx + 1)
+            x[c_idx] = 0
+
+def main():
+    import sys
+    n = int(sys.stdin.readline())
+    x = [0] * n
+    backtrack(n, x, 0)
+
+if __name__ == '__main__':
+    main()

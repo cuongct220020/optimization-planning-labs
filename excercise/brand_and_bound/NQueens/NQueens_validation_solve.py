@@ -39,7 +39,7 @@ Output:
 1
 0
 """
-def check(board):
+def solve(board):
     n = len(board)
     rows = set()
     cols = set()
@@ -58,7 +58,7 @@ def check(board):
 
     return 1
 
-def solve():
+def main():
     import sys
     data = sys.stdin.read().strip().split()
 
@@ -67,7 +67,7 @@ def solve():
     for _ in range(T):
         n = int(next(it))
         board = [[int(next(it)) for _ in range(n)] for _ in range(n)]
-        print(check(board))
+        print(solve(board))
 
 if __name__ == "__main__":
-    solve()
+    main()

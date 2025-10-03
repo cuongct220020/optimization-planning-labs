@@ -2,7 +2,7 @@
 Problem: CBUS (Passenger Bus Routing with Capacity)
 
 Description:
-- There are n passengers labeled 1..n.
+- There are n passengers labeled 1...n.
 - Each passenger i wants to travel from point i to point i+n.
 - A bus starts at point 0 and must serve all passengers, finally returning to point 0.
 - The bus has capacity k, meaning at most k passengers can be on the bus simultaneously.
@@ -35,3 +35,73 @@ Input:
 Output:
 25
 """
+
+def CBUS_solve(n, max_load, cost, c_min):
+    visited = [False] * (2*n + 1)
+    best_cost = float("inf")
+    curr_cost, curr_load = 0, 0
+
+    def back_tracking(curr_pos, served_count):
+        nonlocal visited, best_cost, curr_cost, curr_load
+
+        # Nếu đã thăm hết các điểm (2n khách), quay về 0
+        if served_count == 2*n:
+            total_cost = curr_cost + cost[curr_pos][0]
+            best_cost = min(best_cost, total_cost)
+            return
+
+        # pruning
+        if curr_cost + (2*n - served_count + 1) * c_min >= best_cost:
+            return
+
+        for nxt in range(1, 2*n + 1):
+            if not visited[nxt]:
+                if nxt <= n:  # pick-up point
+                    if curr_load < max_load:
+                        visited[nxt] = True
+                        curr_cost += cost[curr_pos][nxt]
+                        curr_load += 1
+
+                        back_tracking(nxt, served_count + 1)
+
+                        curr_load -= 1
+                        curr_cost -= cost[curr_pos][nxt]
+                        visited[nxt] = False
+
+                else:  # drop-off point
+                    if visited[nxt - n]:  # chỉ được trả nếu đã đón
+                        visited[nxt] = True
+                        curr_cost += cost[curr_pos][nxt]
+                        curr_load -= 1
+
+                        back_tracking(nxt, served_count + 1)
+
+                        curr_load += 1
+                        curr_cost -= cost[curr_pos][nxt]
+                        visited[nxt] = False
+
+    back_tracking(0, 0)
+    return best_cost
+
+def main():
+    import sys
+    data = sys.stdin.read().split()
+
+    n, k = int(data[0]), int (data[1])
+    size = 2*n + 1
+    cost = [[0] * size for _ in range(size)]
+    c_min = float('inf')
+
+    idx = 2
+    for i in range(size):
+        for j in range(size):
+            val = int(data[idx]); idx += 1
+            cost[i][j] = val
+            if i != j and val < c_min:
+                c_min = val
+
+    result = CBUS_solve(n, k, cost, c_min)
+    print(result)
+
+if __name__ == '__main__':
+    main()

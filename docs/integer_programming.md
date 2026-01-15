@@ -275,13 +275,99 @@ Dựa trên các ví dụ trong tài liệu và snippet, quy trình chuẩn bao 
 * **Tham số:** Cần chú ý các tham số về thời gian (`SetTimeLimit`) và dung sai (`SetRelativeGap`) để tránh việc bộ giải chạy vô hạn trên các bài toán lớn.
 * **Debug:** Sử dụng `EnableOutput()` để xem log quá trình B&C (số node, số cuts, giá trị cận) giúp chẩn đoán hiệu năng mô hình.
 
+## 7. Phân tích các bài toán ứng dụng điển hình
+
+### 7.1. Bài toán phân công giáo viên (Balanced Class Teacher Assignment)
+
+**Bài toán:** Phân công $n$ lớp học cho $m$ giáo viên sao cho tải trọng (số tín chỉ) lớn nhất của một giáo viên là nhỏ nhất, thoả mãn các ràng buộc về chuyên môn và xung đột thời gian.
+
+**Mô hình MIP:**
+* **Biến:** $x_{ij} \in \{0, 1\}$ (Giáo viên j dạy lớp i). Biến phụ trợ **L_max** (Tải trọng lớn nhất).
+* **Hàm mục tiêu:** $\min L_{max}$. Đây là mô hình Minimax điển hình.
+* **Ràng buộc:**
+1. Phủ kín: $\sum_j x_{ij} = 1, \forall i$ (Mỗi lớp có đúng 1 giáo viên).
+2. Chuyên môn: $x_{ij} = 0$ nếu $j \notin T(i)$ (Chỉ phân công nếu dạy được).
+3. Xung đột: $x_{i_1 j} + x_{i_2 j} \le 1, \forall j, \forall (i_1, i_2) \in Q$ (Không dạy 2 lớp trùng giờ). Ràng buộc này tương đương với bài toán tìm tập độc lập trên đồ thị xung đột.
+4. Cân bằng tải: $\sum_i c(i) x_{ij} \le L_{max}, \forall j$. Ràng buộc này liên kết biến quyết định với biến mục tiêu Minimax.
+
+**Insight:** Đây là bài toán Bottleneck Assignment. Việc tối ưu $L_{max}$ giúp đảm bảo công bằng. 
+Trong thực tế, có thể thêm hàm mục tiêu phụ để tối thiểu hoá tống số giáo viên sử dụng hoặc tối ưu nguyện vọng (preference).
+
+### 7.2. Bài toán hiệu chỉnh nhóm máu (Blood Type Correction Problem)
+**Bài toán:** Dữ liệu phả hệ bị lỗi. Cần tìm số lượng sửa đổi ít nhất để toàn bộ cây gia phả tuân theo quy luật di chuyền Mendel.
+
+**Cơ sở sinh học & Logic:**
+- Genotype (kiểu gen): AA, AO $\to$ A; BB, BO $\to$ B; AB $\to$ AB; OO $\to$ O.
+- Quy luật: Con nhận 1 alen từ cha và 1 alen từ mẹ. 
+- Ví dụ logic: Nếu cha mẹ là (O, O), con chắc chắn là O. Nếu cha mẹ là (AB, O), con chỉ có thể là A hoặc B (không thể là AB hay O).
+
+**Mô hình MIP:**
+- **Biến:**  $x_{i, \text{type}} \in \{0, 1\}$ xác định nhóm máu đích thực của người $i$. Biến $y_i$ xác định xem người $i$ có bị sửa đổi so với dữ liệu gốc không.
+- **Ràng buộc di truyền (Hard Constraints):** Đây là thách thức lớn nhất. Cần chuyển đổi bảng quy luật di truyền thành các bất đẳng thức tuyến tính. Ví dụ: Luật "Con O thì cha mẹ không thể là AB".
+
+$$x_{i, O} + x_{\text{cha}, AB} \le 1$$
+
+$$x_{i, O} + x_{\text{mẹ}, AB} \le 1$$
+
+Tài liệu  liệt kê đầy đủ 4 quy tắc suy diễn logic để bao phủ mọi trường hợp.
+
+- **Hàm mục tiêu:** $\min \sum y_i$.
+
+**Insight:** Đây là bài toán _Maximum Feasible Subsystem_ hoặc _Data Cleaning_. Với các dây phả hệ lớn và phức tạp, việc sử dụng CP-SAT sẽ hiệu quả hơn MIP truyền thống do bản chất bài toán thuần tuý logic và rời rạc.
 
 
+### 7.3. Bài toán người du lịch (TCP)
 
+**Bài toán:** Tìm chu trình Hamilton ngắn nhất trên đồ thị đầy đủ có trọng số.
 
+**Mô hình và Thách thức:**
 
+- Ràng buộc bậc (Degree constraints): Vào 1, ra 1 tại mỗi nút. Dễ mô hình hóa.
+- Ràng buộc loại bỏ chu trình con (Subtour Elimination Constraints - SECs): Khó khăn nhất.
+  * Phương pháp Dantzig-Fulkerson-Johnson (DFJ): $\sum_{i,j \in S} x_{ij} \le |S| - 1, \forall S \subset V$. Số lượng ràng buộc là $2^n$, không thể liệt kê hết.
+  * Phương pháp trong Slide : **Lazy Constraints (Cắt lười).**
+    * Giải bài toán chỉ với ràng buộc bậc (đây là bài toán Assignment).
+    * Kiểm tra nghiệm: Nếu tạo thành 1 chu trình duy nhất $\to$ Tối ưu.
+    * Nếu tạo thành nhiều chu trình con rời rạc: Tìm các chu trình con này, thêm ràng buộc SEC vi phạm tương ứng vào mô hình và giải lại.
+Đây chính là ứng dụng thủ công của quy trình Branch and Cut. Cách này hiệu quả hơn nhiều so với mô hình MTZ (Miller-Tucker-Zemlin) vốn yếu (weak relaxation) dù số lượng biến ít hơn ($O(n^2)$).
 
+### 7.4. Bài toán định vị cơ sở (Facility Location Problem)
 
+**Bài toán:** Chọn mở các nhà máy nào ($y_i$) để phục vụ nhu cầu khách hàng ($d_j$) sao cho tổng chi phí (mở nhà máy + vận chuyển) là nhỏ nhất.
 
+**Mô hình:**
+
+- Hàm mục tiêu: $\min \sum f_i y_i + \sum c_{ij} x_{ij}$.
+- Ràng buộc:
+  * Đáp ứng nhu cầu: $\sum_i x_{ij} = d_j$.
+  * Năng lực (Capacity): $\sum_j x_{ij} \le Q_i y_i$.
+
+**Insight về "Strong Formulation":** Ràng buộc năng lực về mặt logic là đủ: Nếu $y_i=0 \implies \sum x_{ij} \le 0 \implies x_{ij}=0$. Tuy nhiên, miền nới lỏng LP của ràng buộc này rất lỏng lẻo (weak).Để tăng cường (tighten) mô hình, ta nên thêm các ràng buộc dư thừa logic nhưng mạnh về hình học (Valid Inequalities):
+
+$$x_{ij} \le d_j y_i$$
+
+Ràng buộc này (variable upper bound constraints) buộc $x_{ij}$ phải bằng 0 ngay khi $y_i$ có giá trị nhỏ trong bài toán nới lỏng, giúp cận đối ngẫu $\overline{Z}$ chặt hơn rất nhiều, làm giảm đáng kể thời gian chạy B&B.
+
+### 7.5. Bài toán định tuyến Multicast và VRP
+
+**Multicast Routing:** Tìm cây Steiner trên đồ thị để truyền tin từ nguồn đến nhiều đích với ràng buộc độ trễ.
+
+- **Mô hình:** Sử dụng biến luồng hoặc biến thời gian tích lũy $Y_i$ tại mỗi nút để kiểm soát độ trễ.Ràng buộc: $Y_i + t_{ij} \le Y_j + M(1 - x_{ij})$. Nếu cạnh $(i, j)$ được chọn, thời gian tại $j$ phải lớn hơn tại $i$. 
+- **Ràng buộc** $Y_{\text{đích}} \le L_{max}$ đảm bảo QoS (Chất lượng dịch vụ).
+
+**Capacitated Vehicle Routing Problem (CVRP):** 
+
+- Đây là sự mở rộng của TSP với nhiều xe và ràng buộc dung lượng. 
+- Mô hình trong slide sử dụng biến 3 chỉ số $X_{ijk}$ (xe $k$ đi từ $i$ đến $j$) hoặc biến tích lũy tải trọng để loại bỏ chu trình con và đảm bảo không vượt quá tải trọng xe. Tương tự TSP, các ràng buộc SEC là mấu chốt và thường được xử lý bằng Branch and Cut.
+
+## Kêt luận và khuyến nghị
+
+Quy hoạch nguyên là một công cụ cực kỳ mạnh mẽ, cho phép giải quyết chính xác các bài toán quyết định phức tạp trong thực tế. Tuy nhiên, bản chất NP-khó đòi hỏi người thực hiện phải nắm vững không chỉ cú pháp công cụ (như OR-Tools) mà còn cả lý thuyết sâu sắc bên dưới. 
+
+**Các điểm mấu chốt cần ghi nhớ:**
+1. **Mô hình hoá là nghệ thuật:** Một mô hình tốt (Strong Formulation) với các ràng buộc chặt (như trong Facility Location) có giá trị hơn một máy tính mạnh. Hãy luôn tìm cách thêm các "Valid Inequalities" để hỗ trợ bộ giải. 
+2. **Hiểu rõ thuật toán:** Biết cách B&B và Gomory Cuts hoạt động giúp ta hiểu tại sao bộ giải bị chậm (ví dụ: do Big-M quá lớn làm yếu cận LP), hay do đối xứng symmetry. 
+3. **Lựa chọn công cụ:** Với các bài toán logic thuần tuý (như Blood Type, Xếp lịch), hãy cân nhắc CP-SAT thay vì MIP truyền thống. 
+4. **Tuyến tính hoá:** Nắm vững kỹ thuật Big-M và xử lý biến nhị phân là kỹ thuật sinh tồn trong thế giới IP.
 
 

@@ -109,10 +109,10 @@ def lp_solver(n, m, dl, du, c, a, low, up):
 
 if __name__ == '__main__':
     # Step 1: Read Console Input
-    filename = "input.txt"
+    filename = "basic_lp_input.txt"
 
-    if os.path.exists("input.txt"):
-        with open("input.txt", "r") as f:
+    if os.path.exists(filename):
+        with open(filename, "r") as f:
             data = f.read().strip().split()
     else:
         data = sys.stdin.read().strip().split()
@@ -185,10 +185,10 @@ def lp_solver(n, m, dl, du, c, a, low, up):
 
 if __name__ == '__main__':
     # Step 1: Read Console Input
-    filename = "input.txt"
+    filename = "basic_lp_input.txt"
 
-    if os.path.exists("input.txt"):
-        with open("input.txt", "r") as f:
+    if os.path.exists("basic_lp_input.txt"):
+        with open("basic_lp_input.txt", "r") as f:
             data = f.read().strip().split()
     else:
         data = sys.stdin.read().strip().split()

@@ -8,7 +8,7 @@ This repository is designed for optimization and planning labs. It focuses on il
 - Serve as a reference for coursework, projects, and assignments related to planning optimization.
 
 ## Repository Structure
-- `docs/`: theoretical notes, explanations, and tutorials for optimization concepts.
+- `docs/`: class materials, theoretical notes, explanations, and tutorials for optimization concepts.
 - `excercise/`: lab exercises organized by method, including problem inputs and solving scripts.
 - `project/ShareARide/`: a sample project applying optimization techniques to a ride-sharing scenario.
 - `training/`: additional practice scripts and sample datasets for broader experimentation.

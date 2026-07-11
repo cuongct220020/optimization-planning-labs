@@ -13,4 +13,4 @@ This repository is designed for optimization and planning labs. It focuses on il
 - `project/ShareARide/`: a sample project applying optimization techniques to a ride-sharing scenario.
 - `training/`: additional practice scripts and sample datasets for broader experimentation.
 
-This repository is intended mainly for educational and research purposes.
+This repository is intended mainly for educational and research purposes. I often visit [hustack.soict](https://hustack.soict.ai/) for hands-on practice of the labs.
